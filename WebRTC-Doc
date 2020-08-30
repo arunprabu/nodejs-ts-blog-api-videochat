@@ -1,0 +1,204 @@
+WebRTC 
+====
+    WebRTC - Real Time Communication Standard
+    HTML5 Standard for browsers to communicate between them 
+    Browsers can communicate in real time with other browser 
+
+    WebRTC has some building blocks for developers to use to build apps 
+    The apps can do video chat over internet 
+    WebRTC works on supported browser. 
+    And It doesn't require any other additional tools. 
+
+    Along with HTML5, a JavaScript API is introduced for WebRTC 
+    The JS API enables developers to develop WebRTC based webapps 
+    It connects directly to the browser without any storage needed in between. 
+    So, essentially it is a peer to peer connection 
+    (similar to a chrome to another firefox)
+
+    Signalling Server 
+
+    In a nutshell, WebRTC is a free, open project that provides browsers 
+    and mobile applications with Real-Time Communications (RTC) 
+    capabilities via simple API’s.
+
+    We need a front end. So let's build one in pug 
+
+
+Websockets 
+====
+    Communication between browser and a server 
+    One way is HTTP; another is websocket 
+
+    WebSocket is a computer communications protocol, 
+    which provides full-duplex communication channels over a 
+    single TCP connection.
+
+    WebSocket is a bi-directional communication between 
+    the server and the client which implies that 
+    both parties can communicate and exchange data at the same time.
+
+    Allows real-time data flow b/w both client and server 
+
+    Socket.io -- an implementation of websockets concept in JS (usable in both NodeJS and Front end) 
+    To build this app: 
+    Refer: https://socket.io/docs/ and https://socket.io
+
+    Example app is here https://socket.io/demos/chat/ 
+
+====
+
+Step 1:
+---
+    npm i socket.io --save
+    npm i @types/socket.io --save-dev 
+
+
+Step 2: 
+    let's first have 'videochat' url active
+    have the controller for videochat 
+    inside the controller render pug template named 'videochat'
+
+Step 3:
+    create videochat.pug inside views folder 
+
+        extends layout
+
+        block content
+            h1 Video Conference App!
+            p.lead Built using Socket.io and WebRTC.
+
+Step4: 
+    Goto app.ts 
+    and the register the new route 'videchat' 
+    
+    app.get("/videochat", videoChatController.index);
+
+
+Step 5: 
+    restart the server 
+    hit localhost:3000/videochat 
+
+Step 6: 
+    Complete the socket.io server side setup in server.ts 
+
+    import * as socketIo from "socket.io"; // new
+
+    let io: SocketIO.Server;
+
+    before the line 'export default server;' write the following lines 
+
+
+        // setting up real time chat server using socket.io 
+        const setupChatServer = () =>{
+            io = socketIo.listen(server);
+            
+            io.on("connection", (socket) => {
+                console.log('Connected');
+            });
+        };
+
+        setupChatServer();
+
+Step 7: 
+    prepare the b/e side with many more socket event handlers and emitters 
+
+        // setting up real time chat server using socket.io 
+        const setupChatServer = () =>{
+            io = socketIo.listen(server);
+            
+            io.on("connection", (socket) => {
+                console.log("Connected");
+
+                // completing the possible server side socket related events 
+                socket.broadcast.emit("add-users", {
+                    users: [socket.id]
+                });
+
+                socket.on("disconnect", () => {
+                    console.log('inside disconnect');
+                    socketsArray.splice(socketsArray.indexOf(socket.id), 1);
+                    io.emit("remove-user", socket.id);
+                });
+
+                socket.on("make-offer", (data) => {
+                    console.log('inside make-offer and emitting offer-made');
+                    socket.to(data.to).emit("offer-made", {
+                        offer: data.offer,
+                        socket: socket.id
+                    });
+                });
+
+                socket.on("make-answer", (data) => {
+                    console.log('inside make-answer and emitting answer-made');
+                    socket.to(data.to).emit("answer-made", {
+                        socket: socket.id,
+                        answer: data.answer
+                    });
+                });
+            });
+        };
+
+
+Step 8: 
+    Setup the front end 
+    
+
+
+
+Step 7:
+    Start the socket io server 
+
+Step 3: 
+    Complete the routing 
+    Write the server side logic 
+
+Step 4: 
+    Complete the front end side 
+    Have the pug template for the route
+
+Step 5: 
+    Work on client side setup 
+
+Step 6: 
+    Check the app. 
+    Give permission to access device's features such as camera and mic 
+
+Step 7: 
+    Try opening the same app in multiple browsers 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+socket.broadcast.emit("add-users", {
+    users: [socket.id]
+});
+
+socket.on("disconnect", () => {
+    socketsArray.splice(socketsArray.indexOf(socket.id), 1);
+    io.emit("remove-user", socket.id);
+});
+
+socket.on("make-offer", (data) => {
+    socket.to(data.to).emit("offer-made", {
+        offer: data.offer,
+        socket: socket.id
+    });
+});
+
+socket.on("make-answer", (data) => {
+    socket.to(data.to).emit("answer-made", {
+        socket: socket.id,
+        answer: data.answer
+    });
+});

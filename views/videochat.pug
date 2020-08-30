@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  script(src='/js/lib/socket.io.js')
+  script(src='/js/lib/videochat.js')
+      
+  h1 NodeJS, Express, TS, Socket IO Video Conference App
+  hr
+  .row
+    .col-sm-12.text-center
+      h2 Developed during NodeJS Training session!
+      video(class='video-large' autoplay)
+      div(class="users-container" id="users-container")
+        h4 Users
+        div(id="users")
